@@ -1,0 +1,518 @@
+<!DOCTYPE html5>
+<head>
+
+    <!--
+    Wrestling Score Clock
+    
+    22 November 2024
+    -->
+
+    <title>Wrestling Scoreboard</title>
+    <style>
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        html, body {
+            scrollbar-width: none;
+        }
+
+        body {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            scale: .9;
+            display: grid;
+            justify-self: center;
+            width: 1500pt;
+            grid-template-columns: auto auto auto;
+            grid-template-rows: auto auto;
+            align-content: center;
+            color: ffffff;
+            background-color: 000000;
+            user-select: none;
+        }
+
+        .scoreSection {
+            text-align: center;
+            align-content: center;
+            display: grid;
+            gap: 0;
+            grid-template-rows: auto auto;
+        }
+
+        .scoretitle {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-size: 100pt;
+            grid-row: 1;
+        }
+
+        .scorenumber {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            width: 500pt;
+            justify-self: center;
+            font-size: 400pt;
+            grid-row: 2;
+            position: relative;
+            bottom: 100pt;
+        }
+
+        .scoreControls {
+            display:grid;
+            grid-template-columns: auto auto;
+            gap: 50pt;
+            justify-self: center;
+            align-self: center;
+            position: relative;
+            bottom: 150pt;
+        }
+
+        .leftScoreSection {
+            grid-column: 1;
+        }
+
+        .leftScore {
+            color: rgb(0, 255, 0);
+        }
+
+        .rightScoreSection {
+            grid-column: 3;
+        }
+
+        .rightScore {
+            color: rgb(255, 0, 0);
+        }
+
+        .timingSection {
+            grid-column: 2;
+            grid-row: 1;
+            display: grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto auto;
+            text-align: center;
+            align-content: center;
+            position: relative;
+            bottom: 50;
+        }
+        
+        .periodSection {
+            font-size: 45pt;
+            padding-top: 100;
+        }
+
+        .periodNumber {
+            font-size: 190pt;
+            position: relative;
+            bottom: 0pt;
+            height: 200pt;
+        }
+
+        .periodText{
+            height: 30pt;
+        }
+
+        .clock {
+            font-size: 150pt;
+            position: relative;
+            bottom: 0pt;
+            width: 300pt;
+            justify-self: center;
+            height: 200pt;
+            align-self: center;
+        }
+
+        .button {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            border: none;
+            border-radius: 20pt;
+            color: white;
+            background-color: 111111;
+            user-select: none;
+        }
+
+        body button:active {
+            background-color: 222222;
+        }
+
+        .scoreButton {
+            font-size: 70pt;
+            aspect-ratio: 1/1;
+            justify-self: center;
+        }
+
+        .controlButton {
+            font-size: 30pt;
+            align-self: center;
+            justify-self: center;
+            padding: 20;
+        }
+
+        .startStopButton {
+            font-size: 60pt;
+            padding: 20;
+        }
+
+        .mainControls{
+            display: grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto;
+            justify-self: center;
+            gap: 20pt;
+            position: relative;
+            bottom: 0pt;
+        }
+
+        .upperMainControls{
+            grid-row: 1;
+            display: grid;
+            grid-template-columns: min-content auto;
+            gap: 20pt;
+        }
+
+        .lowerMainControls {
+            grid-row: 2;
+        }
+
+        .configButtonSection {
+            position: absolute;
+            left: 1450pt;
+            display: block;
+            z-index: 1;
+        }
+
+        .configButton {
+            text-align: center;
+            text-justify: center;
+            line-height: 15pt;
+            font-size: 40pt;
+            width: 50pt;
+            height: 50pt;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="configButtonSection">
+        <button class="button configButton" id="configButton">≡</button>
+        <button class="button configButton" id="hideButton">👁</button>
+    </div>
+    <div class = "leftScoreSection scoreSection">
+        <h2 class="scoretitle">SCORE</h2>
+        <div class="leftScore scorenumber">00</div>
+        <div id="leftControls" class="scoreControls">
+            <button id="leftScoreIncrement" class="scoreButton button">+</button>
+            <button id="leftScoreDecrement" class="scoreButton button">-</button>
+        </div>
+    </div>
+    <div class="rightScoreSection scoreSection">
+        <h2 class="scoretitle">SCORE</h2>
+        <div class="rightScore scorenumber">00</div>
+        <div id="rightControls" class="scoreControls">
+            <button id="rightScoreIncrement" class="scoreButton button">+</button>
+            <button id="rightScoreDecrement" class="scoreButton button">-</button>
+        </div>
+    </div>
+
+    <div class="timingSection">
+        <div class="periodSection">
+            <h2 class="periodText">PERIOD</h2>
+            <div class="periodNumber" id="periodNumber">0</div>
+        </div>
+        <div id="clockSection" class="clock">
+            <div class="clock">0:00</div>
+        </div>
+        <div class="mainControls">
+            <div class="upperMainControls">
+                <button id="resetButton" class="button controlButton">Reset</button>
+                <button id="nextPeriodButton" class="button controlButton">Next Period</button>
+            </div>
+            <div class="lowerMainControls">
+                <button class="button startStopButton" id="startStopButton">Start</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+
+        const FIRST_PERIOD_TIME = 90;
+        const SUBSEQUENT_PERIOD_TIME = 60;
+        const BLOOD_TIME = 5 * 60;
+
+        let controlsWindow = null;
+
+        function setTextContentByClass(classBind, content) {
+            let elements = document.getElementsByClassName(classBind);
+            for (let element of elements) {
+                element.textContent = content;
+            }
+
+            if (controlsWindow != null && !controlsWindow.closed) {
+                let welements = controlsWindow.document.getElementsByClassName(classBind);
+                for (let element of welements) {
+                    element.textContent = content;
+                }
+            }
+        }
+
+        class NumberDisplay {
+            _value = 0;
+            _classNameBind;
+
+            value() {
+                return this._value;
+            }
+
+            set(value) {
+                this._value = value;
+                setTextContentByClass(this._classNameBind, this._value);
+            }
+
+            constructor(classNameBind, defaultValue) {
+                this._classNameBind = classNameBind;
+                this.set(defaultValue);
+            }
+        }
+
+        class ScoreDisplay extends NumberDisplay {
+
+            constructor (classNameBind, defaultValue) {
+                super(classNameBind, defaultValue);
+                this.set(defaultValue);
+            }
+
+            //Sets the value of a score display.
+            set(value) {
+
+                if (value < 0) {
+                    value = 0;
+                }
+
+                this._value = value;
+                if (value < 10) {
+                    setTextContentByClass(this._classNameBind, "0" + this._value);
+                }
+                else {
+                    setTextContentByClass(this._classNameBind, this._value);
+                }
+            }
+        }
+
+        class Clock {
+            mins = 0;
+            secs = 0;
+            hundredths = 0;
+
+            set(secs) {
+                if (!Number.isInteger(secs)) {
+                    alert("Internal Error Occured: (SET_CLOCK_NON_INT)");
+                    throw new Error("setClock Requires an integer input.");
+                }
+                if (secs < 0) {
+                    secs = 0;
+                }
+                this.secs  = secs % 60;
+                this.mins = Math.floor(secs / 60);
+                this.hundredths = 0;
+            }
+
+            get() {
+                return this.secs + this.mins * 60;
+            }
+
+        }
+        
+        //global vars
+        const clock = new Clock();
+        let clockRunning = false;
+        let buttonsVisible = true;
+        let clockIntervalID = null;
+        const leftScore = new ScoreDisplay("leftScore", 0);
+        const rightScore = new ScoreDisplay("rightScore", 0);
+        const period = new NumberDisplay("periodNumber", 0);
+
+
+        //sets the clock to a number of seconds.
+        function setClock(secs) {
+            clock.set(secs);
+            displayClock();
+        }
+
+        //resets the scoreboard
+        function initialize() {
+            clockRunning = false;
+            leftScore.set(0);
+            rightScore.set(0);
+            period.set(1);
+            setClock (FIRST_PERIOD_TIME);
+        }
+
+        //starts/stops the clock
+        function toggleClock() {
+            if (!clockRunning) {
+                clockIntervalID = setInterval(runClock, 10);
+                setTextContentByClass("startStopButton","Pause");
+                clockRunning = true;
+            }
+            else {
+                clearInterval(clockIntervalID);
+                setTextContentByClass("startStopButton","Start");
+                clockRunning = false;
+            }
+        }
+
+        //writes the value of the clock to the scoreboard
+        function displayClock() {
+            setTextContentByClass("clock", clock.mins + ":" + ((clock.secs < 10) ? ('0' + clock.secs) : (clock.secs)));
+        }
+
+        //Periodic function: will be called 100 times per second when the clock is running to allow the clock to run.
+        function runClock() {
+            if (clockRunning) {
+                if (clock.hundredths != 0) {
+                    clock.hundredths--;
+                }
+                else {
+                    if (clock.secs != 0) {
+                        clock.secs--;
+                        clock.hundredths += 99
+                        displayClock();
+                    }
+                    else if (clock.mins != 0){
+                        clock.mins--;
+                        clock.secs += 59;
+                        clock.hundredths += 99;
+                        displayClock();
+                    }
+                    else {
+                        //TODO: Add horn here
+                        clockRunning = false;
+                        clearInterval(clockIntervalID);
+                        setTextContentByClass("startStopButton","Start");
+                    }
+                }
+            }
+        }
+
+        //changes the number in the period display.
+        function setPeriod(value, adjustClock = true) {
+
+            if (value < 1) {
+                value = 1;
+            }
+
+            period.set(value);
+
+            if (adjustClock) {
+                if (period != 1) {
+                    setClock(SUBSEQUENT_PERIOD_TIME);
+                }
+                else {
+                    setClock(FIRST_PERIOD_TIME);
+                }
+            }
+        }
+
+        //Shows/Hides all buttons on the scoreboard
+        function showButtons(visible) {
+            let elements = document.getElementsByTagName("button");
+            for (let element of elements) {
+                element.style.display = (visible ? "" : "none");
+            }
+
+            if (!visible) {
+                document.getElementById("hideButton").style.display = "";
+            }
+            document.getElementById("hideButton").style.color = (visible ? "FFFFFF" : "222222");
+            buttonsVisible = visible;
+        }
+
+        //Creates control panel window and binds scoreboard to control panel buttons, hides buttons on main scoreboard.
+        function openControlPanel() {
+            controlsWindow = window.open("./scoreclockcontrols.html", "Scoreboard Control Panel");
+
+            controlsWindow.addEventListener('load', () => {
+                //bind scoreboard to control panel buttons
+                controlsWindow.document.getElementById("leftScoreDecrement").addEventListener ('click', () => {leftScore.set(leftScore.value() - 1);});
+                controlsWindow.document.getElementById("leftScoreIncrement").addEventListener ('click', () => {leftScore.set(leftScore.value() + 1);});
+                controlsWindow.document.getElementById("leftScoreIncrement2").addEventListener('click', () => {leftScore.set(leftScore.value() + 2);});
+                controlsWindow.document.getElementById("leftScoreIncrement3").addEventListener('click', () => {leftScore.set(leftScore.value() + 3);});
+                controlsWindow.document.getElementById("leftScoreIncrement4").addEventListener('click', () => {leftScore.set(leftScore.value() + 4);});
+
+                controlsWindow.document.getElementById("rightScoreDecrement").addEventListener ('click', () => {rightScore.set(rightScore.value() - 1);});
+                controlsWindow.document.getElementById("rightScoreIncrement").addEventListener ('click', () => {rightScore.set(rightScore.value() + 1);});
+                controlsWindow.document.getElementById("rightScoreIncrement2").addEventListener('click', () => {rightScore.set(rightScore.value() + 2);});
+                controlsWindow.document.getElementById("rightScoreIncrement3").addEventListener('click', () => {rightScore.set(rightScore.value() + 3);});
+                controlsWindow.document.getElementById("rightScoreIncrement4").addEventListener('click', () => {rightScore.set(rightScore.value() + 4);});
+
+                controlsWindow.document.getElementById("decPeriod").addEventListener('click', () => {setPeriod(period.value() - 1, false);});
+                controlsWindow.document.getElementById("incPeriod").addEventListener('click', () => {setPeriod(period.value() + 1, false);});
+
+                controlsWindow.document.getElementById("startStopButton").addEventListener('click', () => {toggleClock()});
+                controlsWindow.document.getElementById("resetButton").addEventListener('click', () => {initialize()});
+                controlsWindow.document.getElementById("nextPeriodButton").addEventListener('click', () => {setPeriod(period.value() + 1)});
+
+                controlsWindow.document.getElementById("clockDec1m").addEventListener('click', () => {setClock(clock.get() - 60)});
+                controlsWindow.document.getElementById("clockDec1s").addEventListener('click', () => {setClock(clock.get() - 1)});
+                controlsWindow.document.getElementById("clockInc1s").addEventListener('click', () => {setClock(clock.get() + 1)});
+                controlsWindow.document.getElementById("clockInc1m").addEventListener('click', () => {setClock(clock.get() + 60)});
+                controlsWindow.document.getElementById("clockZero").addEventListener('click', () => {setClock(0)});
+
+                //initialize text on control panel to match scoreboard
+                /*leftScore.set(leftScore.value());
+                rightScore.set(rightScore.value());
+                period.set(period.value())
+                displayClock();
+                controlsWindow.document.getElementById("startStopButton").textContent = (clockRunning ? "Pause" : "Start");*/
+                initialize();
+                showButtons(false);
+            });
+
+            
+
+        }
+
+        //========================
+        //Bind Controls to Buttons
+        //========================
+        document.getElementById("leftScoreIncrement").addEventListener('click', 
+            () => {
+                leftScore.set(leftScore.value() + 1);
+            }
+        );
+
+        document.getElementById("leftScoreDecrement").addEventListener('click', 
+            () => {
+                leftScore.set(leftScore.value() - 1);
+            }
+        );
+
+        document.getElementById("rightScoreIncrement").addEventListener('click', 
+            () => {
+                rightScore.set(rightScore.value() + 1);
+            }
+        );
+
+        document.getElementById("rightScoreDecrement").addEventListener('click', 
+            () => {
+                rightScore.set(rightScore.value() - 1);
+            }
+        );
+
+        document.getElementById("startStopButton").addEventListener('click', () => {toggleClock()});
+
+        document.getElementById("resetButton").addEventListener('click', () => {initialize()});
+
+        document.getElementById("nextPeriodButton").addEventListener('click', () => {setPeriod(period.value() + 1)});
+
+        document.getElementById("configButton").addEventListener('click', () => {openControlPanel()});
+
+        document.getElementById("hideButton").addEventListener('click', () => {showButtons(!buttonsVisible)});
+        //===========================================================================================================
+
+        initialize();
+        
+
+
+    </script>
+</body>

@@ -1,0 +1,316 @@
+<!DOCTYPE html5>
+<head>
+
+    <!--
+    Wrestling Score Clock Control Panel
+    
+    22 November 2024
+    -->
+
+    <title>Scoreboard Control Panel</title>
+
+    <style>
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        html, body {
+            overflow: hidden;
+            scrollbar-width: none;
+        }
+
+        head {
+            display: none;
+        }
+
+        body {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            scale: .9;
+            display: grid;
+            gap: 100pt;
+            justify-self: center;
+            justify-content: center;
+            width: auto;
+            grid-template-columns: auto auto auto;
+            grid-template-rows: auto;
+            align-content: center;
+            color: ffffff;
+            background-color: 000000;
+            user-select: none;
+            position: relative;
+            bottom: 0pt;
+        }
+
+        .scoreSection {
+            text-align: center;
+            display: grid;
+            gap: 0;
+            grid-template-rows: auto auto auto;
+        }
+
+        .scoretitle {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-size: 70pt;
+            grid-row: 1;
+        }
+
+        .scorenumber {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            width: auto;
+            justify-self: center;
+            font-size: 300pt;
+            grid-row: 2;
+            position: relative;
+            bottom: 100pt;
+        }
+
+        .scoreControls {
+            display:grid;
+            grid-template-columns: auto auto auto;
+            grid-template-rows: auto auto;
+            gap: 20pt;
+            justify-self: center;
+            align-self: center;
+            position: relative;
+            bottom: 100pt;
+        }
+
+        .leftScoreSection {
+            grid-column: 1;
+        }
+
+        .leftScore {
+            color: rgb(0, 255, 0);
+        }
+
+        .rightScoreSection {
+            grid-column: 3;
+        }
+
+        .rightScore {
+            color: rgb(255, 0, 0);
+        }
+
+        .timingSection {
+            grid-column: 2;
+            grid-row: 1;
+            display: grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto auto;
+            text-align: center;
+            align-content: center;
+            position: relative;
+            bottom: 50;
+        }
+        
+        .periodSection {
+            font-size: 45pt;
+            padding-top: 50;
+            display: grid;
+            gap: 20pt;
+            justify-content: center;
+            grid-template-columns: auto auto auto;
+            grid-template-rows: auto auto;
+        }
+
+        .periodNumber {
+            grid-row: 2;
+            grid-column: 2;
+            font-size: 100pt;
+            position: relative;
+            bottom: 0pt;
+            height: 100pt;
+        }
+
+        .periodText{
+            display: grid;
+            grid-row: 1;
+            grid-column-start: 1;
+            grid-column-end: 4;
+            text-align: center;
+            justify-self: center;
+            align-self:center;
+            height: 30pt;
+        }
+
+        .clock {
+            font-size: 100pt;
+            position: relative;
+            bottom: 0pt;
+            width: 300pt;
+            justify-self: center;
+            height: 100pt;
+            align-self: center;
+        }
+
+        .button {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            border: none;
+            border-radius: 20pt;
+            color: white;
+            background-color: 111111;
+            user-select: none;
+        }
+
+        body button:active {
+            background-color: 222222;
+        }
+
+        .scoreButton {
+            width: 100pt;
+            font-size: 70pt;
+            aspect-ratio: 1/1;
+            justify-self: center;
+        }
+
+        .scoreButtonMinus {
+            grid-column: 1;
+            grid-row-start: 1;
+            grid-row-end: 3;
+            aspect-ratio: 1 / 2;
+            align-self: center;
+        }
+
+        .scoreInc3 {
+            grid-column: 2;
+        }
+
+        
+        .scoreInc4 {
+            grid-column: 3;
+        }
+
+        .controlButton {
+            font-size: 30pt;
+            align-self: center;
+            justify-self: center;
+            padding: 20;
+        }
+
+        .startStopButton {
+            font-size: 60pt;
+            padding: 20;
+        }
+
+        .mainControls{
+            display: grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto auto;
+            justify-self: center;
+            justify-items: center;
+            gap: 20pt;
+            position: relative;
+            top: 20pt;
+        }
+
+        .upperMainControls{
+            grid-row: 2;
+            display: grid;
+            grid-template-columns: min-content auto;
+            gap: 20pt;
+        }
+
+        .clockControls {
+            grid-row: 1;
+            display: grid;
+            grid-template-columns: auto auto auto auto;
+            grid-template-rows: auto auto;
+            gap: 10pt;
+        }
+
+        .clockButton {
+            height:70pt;
+            aspect-ratio: 1/1;
+        }
+
+        .periodButton {
+            width: 60pt;
+            aspect-ratio: 1/1;
+            justify-self: center;
+            position: relative;
+            top: 10pt;
+            grid-row: 2;
+        }
+
+        .clockZero {
+            grid-column-start: 2;
+            grid-column-end: 4;
+            aspect-ratio: 2/1;
+        }
+
+        .lowerMainControls {
+            grid-row: 3;
+        }
+
+        .configButtonSection {
+            position: absolute;
+            left: 1500pt;
+            display: block;
+            z-index: 1;
+        }
+
+        .configButton {
+            text-align: center;
+            text-justify: center;
+            font-size: 40pt;
+            width: 50pt;
+            height: 50pt;
+        }
+    </style>
+</head>
+
+<body>
+    <div class = "leftScoreSection scoreSection">
+        <h2 class="scoretitle">SCORE</h2>
+        <div class="leftScore scorenumber">00</div>
+        <div id="leftControls" class="scoreControls">
+            <button id="leftScoreDecrement" class="scoreButton scoreButtonMinus button">-</button>
+            <button id="leftScoreIncrement" class="scoreButton button">+</button>
+            <button id="leftScoreIncrement2" class="scoreButton button">+2</button>
+            <button id="leftScoreIncrement3" class="scoreButton scoreInc3 button">+3</button>
+            <button id="leftScoreIncrement4" class="scoreButton scoreInc4 button">+4</button>
+        </div>
+    </div>
+    <div class="rightScoreSection scoreSection">
+        <h2 class="scoretitle">SCORE</h2>
+        <div class="rightScore scorenumber">00</div>
+        <div id="rightControls" class="scoreControls">
+            <button id="rightScoreDecrement" class="scoreButton scoreButtonMinus button">-</button>
+            <button id="rightScoreIncrement" class="scoreButton  button">+</button>
+            <button id="rightScoreIncrement2" class="scoreButton button">+2</button>
+            <button id="rightScoreIncrement3" class="scoreButton scoreInc3 button">+3</button>
+            <button id="rightScoreIncrement4" class="scoreButton scoreInc4 button">+4</button>
+        </div>
+    </div>
+
+    <div class="timingSection">
+        <div class="periodSection">
+            <h2 class="periodText">PERIOD</h2>
+            <button id="decPeriod" class = "button controlButton periodButton">-</button>
+            <div class="periodNumber" id="periodNumber">0</div>
+            <button id="incPeriod" class = "button controlButton periodButton">+</button>      
+        </div>
+        <div id="clockSection" class="clock">
+            <div class="clock">0:00</div>
+        </div>
+        <div class="mainControls">
+            <div class="upperMainControls">
+                <button id="resetButton" class="button controlButton">Reset</button>
+                <button id="nextPeriodButton" class="button controlButton">Next Period</button>
+            </div>
+            <div class="clockControls">
+                <button id="clockDec1m" class="button controlButton clockButton">-1'</button>
+                <button id="clockDec1s" class="button controlButton clockButton">-1"</button>
+                <button id="clockInc1s" class="button controlButton clockButton">+1"</button>
+                <button id="clockInc1m" class="button controlButton clockButton">+1'</button>
+                <button id="clockBloodLeft" class="button controlButton clockButton">B</button>
+                <button id="clockZero" class="button controlButton clockZero clockButton">0:00</button>
+                <button id="clockBloodRight" class="button controlButton clockButton">B</button>
+            </div>
+            <div class="lowerMainControls">
+                <button class="button startStopButton" id="startStopButton">Start</button>
+            </div>
+        </div>
+    </div>
+</body>
