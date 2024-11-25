@@ -299,99 +299,132 @@
         }
 
         class Clock {
-            mins = 0;
-            secs = 0;
-            hundredths = 0;
+            #classBind = null;
+            #millis = 0;
+            #startTime;
+            #isRunning = false;
+            #intervalId = null;
+            #displayIntervalId = null;
+            #callOnElapsed = null;
+
+            constructor(classBind, callOnElapsed) {
+                this.#classBind = classBind;
+                this.#callOnElapsed = callOnElapsed;
+            }
 
             set(secs) {
                 if (!Number.isInteger(secs)) {
                     alert("Internal Error Occured: (SET_CLOCK_NON_INT)");
-                    throw new Error("setClock Requires an integer input.");
+                    throw new Error("Setting the Clock Requires an integer input.");
                 }
                 if (secs < 0) {
                     secs = 0;
                 }
-                this.secs  = secs % 60;
-                this.mins = Math.floor(secs / 60);
-                this.hundredths = 0;
+                
+                if (!this.#isRunning) {
+                    this.#millis = secs * 1000;
+                    this.display();
+                }
+                else {
+                    //allows the clock to be changed while it is is running
+                    //by changing the starting time (#millis) to what it would
+                    //need to have been to get the desired time setting.
+                    this.#millis += secs * 1000 - this.#calculate();
+                }
             }
+
+            #calculate() {
+                return this.#millis - (Date.now() - this.#startTime);
+            }
+
+            #update() {
+                if (this.hasElapsed()) {
+                    this.stop();
+                    this.#callOnElapsed();
+                }
+            }
+
+            getSeconds() {
+                return Math.max(Math.round(this.get() / 1000), 0);
+            }
+
 
             get() {
-                return this.secs + this.mins * 60;
+                return Math.max((this.#isRunning ? this.#calculate() : this.#millis), 0);
             }
 
+            start () {
+                if (this.#millis <= 0) {
+                    this.#callOnElapsed();
+                    this.display();
+                    return;
+                }
+                this.#startTime = Date.now();
+                this.#isRunning = true;
+                this.#intervalId = setInterval(() => {this.#update()}, 10);
+                this.#displayIntervalId = setInterval(() => {this.display()}, 10);
+            }
+
+            stop () {
+                if (this.isRunning()) {
+                    this.#millis = this.#calculate();
+                    this.#isRunning = false;
+                    clearInterval(this.#intervalId);
+                    clearInterval(this.#displayIntervalId);
+                    this.display();
+                }
+            }
+
+            display() {
+                let mins = Math.floor(this.get() / (60 * 1000));
+                let secs = Math.floor((this.get() % 60000) / 1000);
+                setTextContentByClass(this.#classBind, mins + ":" + ((secs < 10) ? ('0' + secs) : secs));
+            }
+
+            hasElapsed() {
+                if (this.get() == 0) {
+                    return true;
+                }
+                else {
+                    return false
+                }
+            }
+
+            isRunning() {
+                return this.#isRunning;
+            }
         }
         
         //global vars
-        const clock = new Clock();
-        let clockRunning = false;
+        const clock = new Clock("clock", () => {onClockFinish();});
         let buttonsVisible = true;
         let clockIntervalID = null;
         const leftScore = new ScoreDisplay("leftScore", 0);
         const rightScore = new ScoreDisplay("rightScore", 0);
         const period = new NumberDisplay("periodNumber", 0);
 
-
-        //sets the clock to a number of seconds.
-        function setClock(secs) {
-            clock.set(secs);
-            displayClock();
-        }
-
         //resets the scoreboard
         function initialize() {
-            clockRunning = false;
             leftScore.set(0);
             rightScore.set(0);
             period.set(1);
-            setClock (FIRST_PERIOD_TIME);
+            clock.set(FIRST_PERIOD_TIME);
         }
 
         //starts/stops the clock
         function toggleClock() {
-            if (!clockRunning) {
-                clockIntervalID = setInterval(runClock, 10);
+            if (!clock.isRunning()) {
                 setTextContentByClass("startStopButton","Pause");
-                clockRunning = true;
+                clock.start();
             }
             else {
-                clearInterval(clockIntervalID);
+                clock.stop();
                 setTextContentByClass("startStopButton","Start");
-                clockRunning = false;
             }
         }
 
-        //writes the value of the clock to the scoreboard
-        function displayClock() {
-            setTextContentByClass("clock", clock.mins + ":" + ((clock.secs < 10) ? ('0' + clock.secs) : (clock.secs)));
-        }
-
-        //Periodic function: will be called 100 times per second when the clock is running to allow the clock to run.
-        function runClock() {
-            if (clockRunning) {
-                if (clock.hundredths != 0) {
-                    clock.hundredths--;
-                }
-                else {
-                    if (clock.secs != 0) {
-                        clock.secs--;
-                        clock.hundredths += 99
-                        displayClock();
-                    }
-                    else if (clock.mins != 0){
-                        clock.mins--;
-                        clock.secs += 59;
-                        clock.hundredths += 99;
-                        displayClock();
-                    }
-                    else {
-                        //TODO: Add horn here
-                        clockRunning = false;
-                        clearInterval(clockIntervalID);
-                        setTextContentByClass("startStopButton","Start");
-                    }
-                }
-            }
+        function onClockFinish() {
+            setTextContentByClass("startStopButton","Start");
         }
 
         //changes the number in the period display.
@@ -401,14 +434,16 @@
                 value = 1;
             }
 
+            clock.stop();
+            onClockFinish();
             period.set(value);
 
             if (adjustClock) {
                 if (period != 1) {
-                    setClock(SUBSEQUENT_PERIOD_TIME);
+                    clock.set(SUBSEQUENT_PERIOD_TIME);
                 }
                 else {
-                    setClock(FIRST_PERIOD_TIME);
+                    clock.set(FIRST_PERIOD_TIME);
                 }
             }
         }
@@ -452,18 +487,18 @@
                 controlsWindow.document.getElementById("resetButton").addEventListener('click', () => {initialize()});
                 controlsWindow.document.getElementById("nextPeriodButton").addEventListener('click', () => {setPeriod(period.value() + 1)});
 
-                controlsWindow.document.getElementById("clockDec1m").addEventListener('click', () => {setClock(clock.get() - 60)});
-                controlsWindow.document.getElementById("clockDec1s").addEventListener('click', () => {setClock(clock.get() - 1)});
-                controlsWindow.document.getElementById("clockInc1s").addEventListener('click', () => {setClock(clock.get() + 1)});
-                controlsWindow.document.getElementById("clockInc1m").addEventListener('click', () => {setClock(clock.get() + 60)});
-                controlsWindow.document.getElementById("clockZero").addEventListener('click', () => {setClock(0)});
+                controlsWindow.document.getElementById("clockDec1m").addEventListener('click', () => {clock.set(clock.getSeconds() - 60)});
+                controlsWindow.document.getElementById("clockDec1s").addEventListener('click', () => {clock.set(clock.getSeconds() - 1)});
+                controlsWindow.document.getElementById("clockInc1s").addEventListener('click', () => {clock.set(clock.getSeconds() + 1)});
+                controlsWindow.document.getElementById("clockInc1m").addEventListener('click', () => {clock.set(clock.getSeconds() + 60)});
+                controlsWindow.document.getElementById("clockZero").addEventListener('click', () => {clock.set(0)});
 
                 //initialize text on control panel to match scoreboard
                 /*leftScore.set(leftScore.value());
                 rightScore.set(rightScore.value());
                 period.set(period.value())
-                displayClock();
-                controlsWindow.document.getElementById("startStopButton").textContent = (clockRunning ? "Pause" : "Start");*/
+                displayClock();*/
+                controlsWindow.document.getElementById("startStopButton").textContent = (clock.isRunning() ? "Pause" : "Start");
                 initialize();
                 showButtons(false);
             });
